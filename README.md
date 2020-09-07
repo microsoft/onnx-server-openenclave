@@ -1,6 +1,12 @@
-# Confidential ONNX Runtime Inference Server
+# Confidential ONNX Inference Server
 
-This project allows to deploy an inference server that protects models, inputs, and outputs by using encryption, attestation, and hardware-backed Intel SGX enclaves. It includes a secure messaging protocol that supports TLS connections to be terminated outside the enclave, for example in load balancers.
+The *Confidential Inferencing Beta* is a collaboration between Microsoft Research, Azure Confidential Compute, Azure Machine Learning, and Microsoft’s ONNX project as is provided here **As-Is** in order to showcase an hosting possibility which restricts the machine learning hosting party from accessing both the inferencing request and its corresponding response.
+
+As part of this implementation, the secure Trusted Execution Environment (TEE), generates a private key which is secured within the enclave and is used to decrypt incoming inference requests. The client (reference code also provided), calls the secure enclave to get the code attestation and the public key, with which it would encrypt its requests.
+
+Currently, the provided implementation does not scale as coordinating the private key across multiple nodes is cumbersome. However, 3rd party solutions, alternative hosting environments, and batch processing can incorporate the needed mechanism and build upon this beta offering. 
+
+Microsoft is working on enhancing this offering, but timelines and expected features are not available at this time.
 
 ## Prerequisites
 
