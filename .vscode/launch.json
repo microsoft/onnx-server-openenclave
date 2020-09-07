@@ -1,0 +1,132 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "inputs": [{
+        "id": "oe",
+        "description": "Path to Open Enclave installation",
+        "default": "/opt/openenclave",
+        "type": "promptString"
+    }, {
+        "id": "model",
+        "description": "Path to ONNX model",
+        "default": "external/onnxruntime/onnxruntime/test/testdata/squeezenet/model.onnx",
+        "type": "promptString"
+    }, {
+        "id": "modelInput",
+        "description": "Path to model input (single input only atm)",
+        "default": "external/onnxruntime/onnxruntime/test/testdata/squeezenet/test_data_set_0/test_data_0_input.pb",
+        "type": "promptString"
+    }],
+    "configurations": [
+        {
+            "name": "Debug Server",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/dist/Debug/bin/confonnx_server_host",
+            "args": [
+                "--model_path", "${input:model}",
+                "--http_port", "8001",
+                "--enclave_path", "dist/Debug/bin/confonnx_server_enclave",
+                "--debug"
+            ],
+            "environment": [{
+                "name": "OE_LOG_LEVEL",
+                "value": "VERBOSE"
+            }],
+            "stopAtEntry": true,
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "${input:oe}/bin/oegdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug Python Client (Python)",
+            "type": "python",
+            "request": "launch",
+            "module": "confonnx.main",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/dist/Debug/lib/python"
+            },
+            "args": [
+                "--pb-in", "${input:modelInput}",
+                "--pb-in-names", "data_0",
+                "--url", "http://localhost:8001/",
+                "--enclave-signing-key-file", "sample.pub.pem"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug tests (confonnx)",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/dist/Debug/tests/confonnx_tests",
+            "args": [
+                "dist/Debug/bin/confonnx_server_enclave",
+                "dist/Debug/tests/confonnx_test_enclave",
+                "external/onnxruntime/onnxruntime/test/testdata"
+            ],
+            "environment": [{
+                "name": "OE_LOG_LEVEL",
+                "value": "VERBOSE"
+            }],
+            "stopAtEntry": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "${input:oe}/bin/oegdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug tests (confmsg in confonnx)",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/build/Debug/confmsg-host-prefix/src/confmsg-host-build/confmsg/test/confmsg_tests",
+            "args": [
+                "build/Debug/confmsg-enclave-prefix/src/confmsg-enclave-build/confmsg/test/test_enclave/confmsg_test_enclave"
+            ],
+            "environment": [{
+                "name": "OE_LOG_LEVEL",
+                "value": "VERBOSE"
+            }],
+            "stopAtEntry": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "${input:oe}/bin/oegdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug Server & Client",
+            "configurations": [
+                "Debug Server",
+                "Debug Python Client (Python)"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,56 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+enclave {
+
+    /*
+     * OE requires applications to import EDL used by the SDK to support some
+     * core functionality.
+     *
+     * - attestation.edl & sgx_attestation.edl are needed for OE attestation
+     *   APIs
+     * - logging.edl is needed to support OE diagnostic console logging
+     * - cpu.edl is needed for CPUID querying
+     * - debug.edl should only be needed for debug builds but it is always linked
+     *   into oecore. Additionally, EDL does not currently support conditional
+     *   imports
+     */
+    //from "openenclave/edl/attestation.edl" import *;
+    //from "openenclave/edl/logging.edl" import *;
+    //from "openenclave/edl/sgx/cpu.edl" import *;
+    //from "openenclave/edl/sgx/debug.edl" import *;
+    //from "openenclave/edl/sgx/attestation.edl" import *;
+
+    trusted {
+        public void EnclaveInitialize();
+
+        public void EnclaveRespondToMessage(            
+            [in, count=msg_size] const uint8_t *msg, size_t msg_size,
+            [out, count=max_out_msg_size]uint8_t *out_msg, [user_check] size_t *out_msg_size, size_t max_out_msg_size
+            );
+
+        public void EnclaveDestroy();
+/*
+        public void EnclaveThreadFun (
+            uint64_t enc_key);
+*/
+    };
+
+/*
+    untrusted {
+        void host_exit(
+            int arg);
+
+        void host_create_thread(
+            uint64_t enc_key,
+            [user_check] oe_enclave_t* enc);
+
+        int host_join_thread(
+            uint64_t enc_key);
+
+        int host_detach_thread(
+            uint64_t enc_key);
+    };
+*/
+};
+

@@ -1,0 +1,36 @@
+[submodule "external/onnxruntime"]
+	path = external/onnxruntime
+	url = git@github.com:microsoft/onnxruntime-openenclave.git
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/google/googletest.git
+[submodule "external/confmsg/external/googletest"]
+	path = external/confmsg/external/googletest
+	url = https://github.com/google/googletest.git
+[submodule "external/confmsg/external/flatbuffers"]
+	path = external/confmsg/external/flatbuffers
+	url = https://github.com/google/flatbuffers.git
+[submodule "external/pybind11"]
+	path = external/pybind11
+	url = https://github.com/pybind/pybind11.git
+[submodule "external/curl"]
+	path = external/curl
+	url = https://github.com/curl/curl.git
+[submodule "external/nlohmann-json"]
+	path = external/nlohmann-json
+	url = https://github.com/nlohmann/json.git
+[submodule "external/confmsg/external/mbedtls"]
+	path = external/confmsg/external/mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git
+[submodule "external/confmsg/external/evercrypt"]
+	path = external/confmsg/external/evercrypt
+	url = https://github.com/project-everest/hacl-star.git
+[submodule "external/cpp-base64"]
+	path = external/cpp-base64
+	url = https://github.com/ReneNyffenegger/cpp-base64.git
+[submodule "external/spdlog"]
+	path = external/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "external/re2"]
+	path = external/re2
+	url = https://github.com/google/re2.git

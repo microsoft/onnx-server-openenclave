@@ -1,0 +1,151 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+jobs:
+- job: server_sgx
+
+  pool: 'Ubuntu-1804-SGX-Azure'
+
+  timeoutInMinutes: 80
+
+  steps:
+  - checkout: self
+    submodules: recursive
+
+  # scale set agents don't have docker installed
+  - bash: |
+      sudo apt-get update
+      sudo apt-get install -y docker.io
+    displayName: Install Docker
+
+  - script: sudo docker image prune -f
+    displayName: Remove untagged Docker images
+
+  - script: ./docker/server/build.sh
+    env:
+      BUILD_TYPE: Debug
+      RUN_TESTS: 1
+      CONFONNX_TEST_APP_PWD: $(CONFONNX_TEST_APP_PWD)
+    displayName: Build & test server in Docker (Debug)
+
+  - script: ./docker/server/build.sh
+    env:
+      BUILD_TYPE: Release
+      RUN_TESTS: 1
+      CONFONNX_TEST_APP_PWD: $(CONFONNX_TEST_APP_PWD)
+    displayName: Build & test server in Docker (Release)
+
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: Component Detection
+
+  # TEMPORARY
+  - task: PublishBuildArtifacts@1
+    condition: always()
+    inputs:
+      pathtoPublish: dist
+      artifactName: dist_server_ubuntu1804
+
+# Open Enclave's quote verification library doesn't build in the manylinux CentOS environment.
+# Because of that we temporarily also create slightly less compatible Ubuntu-based wheels.
+- job: client_ubuntu_nosgx
+
+  pool:
+    vmImage: ubuntu-18.04
+
+  steps:
+  - checkout: self
+    submodules: recursive
+
+  # Note that client tests are done as part of the server job above.
+  - script: ./docker/client/build.sh
+    env:
+      PYTHON_VERSION: '3.6'
+    displayName: Build client in Docker (Python 3.6 ubuntu 18.04)
+
+  - script: ./docker/client/build.sh
+    env:
+      PYTHON_VERSION: '3.7'
+    displayName: Build client in Docker (Python 3.7 ubuntu 18.04)
+
+  - script: ./docker/client/build.sh
+    env:
+      PYTHON_VERSION: '3.8'
+    displayName: Build client in Docker (Python 3.8 ubuntu 18.04)
+
+  - script: sha256sum dist/Release/lib/python/*.whl > dist/Release/lib/python/hashes.txt
+    displayName: Compute SHA256 hashes of Python client wheels
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: dist
+      artifactName: dist_ubuntu1804
+    displayName: Publish distributables
+
+- job: client_manylinux2010_nosgx
+
+  pool:
+    vmImage: ubuntu-18.04
+
+  steps:
+  - checkout: self
+    submodules: recursive
+
+  - script: ./docker/client/build.sh
+    env:
+      TYPE: manylinux
+      PYTHON_VERSION: '3.6'
+    displayName: Build & test client in Docker (Python 3.6 manylinux)
+
+  - script: ./docker/client/build.sh
+    env:
+      TYPE: manylinux
+      PYTHON_VERSION: '3.7'
+    displayName: Build & test client in Docker (Python 3.7 manylinux)
+
+  - script: ./docker/client/build.sh
+    env:
+      TYPE: manylinux
+      PYTHON_VERSION: '3.8'
+    displayName: Build & test client in Docker (Python 3.8 manylinux)
+  
+  - script: sha256sum dist/Release/lib/python/*.whl > dist/Release/lib/python/hashes.txt
+    displayName: Compute SHA256 hashes of Python client wheels
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: dist
+      artifactName: dist_manylinux
+    displayName: Publish distributables
+
+# https://aka.ms/SDT-AzDevOps
+- job: analyses
+
+  pool:
+    vmImage: windows-2019
+
+  steps:
+  - checkout: self
+    submodules: none
+
+  - task: CredScan@2
+    inputs:
+      toolMajorVersion: 'V2'
+      outputFormat: 'sarif'
+      
+  - task: PoliCheck@1
+    inputs:
+      inputType: 'Basic'
+      targetType: 'F'
+      targetArgument: '$(Build.SourcesDirectory)'
+      result: 'PoliCheck.xml'
+
+  - task: ComponentGovernanceComponentDetection@0
+    inputs:
+      scanType: 'Register'
+      verbosity: 'Verbose'
+      alertWarningLevel: 'High'
+
+  - task: PublishSecurityAnalysisLogs@3
+    inputs:
+      ArtifactName: 'CodeAnalysisLogs'
+      ArtifactType: 'Container'

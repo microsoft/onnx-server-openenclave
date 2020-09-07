@@ -1,0 +1,6 @@
+six
+requests
+numpy
+onnx
+protobuf
+pytest

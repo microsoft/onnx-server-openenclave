@@ -1,0 +1,72 @@
+namespace confmsg.protocol;
+
+// WARNING: "size" attributes are currently ignored during validation.
+attribute "size";
+
+enum Version:ubyte { v1 = 0 }
+
+enum PointFormat:ubyte { Compressed = 2, Uncompressed = 4 }
+
+table ECPoint {
+  point_format: PointFormat = Compressed;
+  xy:[ubyte] (size: 32);
+}
+
+table KeyRequest {
+  nonce:[ubyte] (size: 16);
+}
+
+table SignedServiceIdentity {
+  nonce:[ubyte] (size: 16);
+  service_identifier:[ubyte] (size: 32);
+  server_share:ECPoint;
+  server_signature_share:ECPoint;
+  signature:[ubyte];
+}
+
+enum EvidenceType:ubyte {
+  Quote = 0,  // Remote attestation quote from enclave
+  Collateral = 1 // Collateral/endorsements
+}
+
+// better as union?
+table Evidence {
+  type:EvidenceType;
+  contents:[ubyte];
+}
+
+table KeyResponse {
+  id:SignedServiceIdentity;
+  lifetime_hint:uint32; // server share static refresh interval
+  key_version:uint32;
+  authenticator:[Evidence];
+}
+
+table Request {
+  key_version:uint32;
+  iv:[ubyte] (size: 12);
+  tag:[ubyte] (size: 16);
+  client_share:ECPoint;
+  additional_data:[ubyte];
+  ciphertext:[ubyte];
+}
+
+table Response {
+  // If true, then the client used an old key that is still valid.
+  // The client should request the new key as soon as possible.
+  key_outdated:bool;
+
+  iv:[ubyte] (size: 12);
+  tag:[ubyte] (size: 16);
+  additional_data:[ubyte];
+  ciphertext:[ubyte];
+}
+
+union Body {KeyRequest, KeyResponse, Request, Response}
+
+table Message {
+  version:Version;
+  body:Body;
+}
+
+root_type Message;

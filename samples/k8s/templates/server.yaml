@@ -1,0 +1,119 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: model-server
+spec:
+  replicas: {{.Values.replicas}}
+  selector:
+    matchLabels:
+      app: model-server
+  template:
+    metadata:
+      labels:
+        app: model-server
+    spec:
+      tolerations:
+        - key: kubernetes.azure.com/sgx_epc_mem_in_MiB
+          operator: Exists
+          effect: NoSchedule
+      containers:
+      - name: model-server
+        image: {{ .Values.image }}
+        env:
+        {{- if .Values.akv }}
+        - name: CONFONNX_USE_AKV
+          value: '1'
+        - name: CONFONNX_AKV_APP_ID
+          value: {{ .Values.akv.appId | quote }}
+        - name: CONFONNX_AKV_APP_PWD
+          value: {{ .Values.akv.appPwd | quote }}
+        - name: CONFONNX_AKV_VAULT_URL
+          value: {{ .Values.akv.vaultUrl | quote }}
+        - name: CONFONNX_AKV_SERVICE_KEY_NAME
+          value: {{ .Values.akv.serviceKeyName | quote }}
+        - name: CONFONNX_AKV_MODEL_KEY_NAME
+          value: {{ .Values.akv.modelKeyName | quote }}
+        - name: CONFONNX_AKV_ATTESTATION_URL
+          value: {{ .Values.akv.attestationUrl | quote }}
+        {{- else }}
+        - name: CONFONNX_USE_AKV
+          value: '0'
+        - name: CONFONNX_USE_MODEL_KEY_PROVISIONING
+          value: {{ if .Values.useModelKeyProvisioning }}'1'{{ else }}'0'{{ end }}
+        {{- end }}
+        ports:
+        - containerPort: 8888
+        resources:
+          limits:
+            kubernetes.azure.com/sgx_epc_mem_in_MiB: {{ .Values.sgx.epcMemInMiB }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: model-service
+spec:
+  selector:
+    app: model-server
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8888
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: model-service-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: api-auth
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+    {{- if .Values.letsEncrypt.enabled }}
+    cert-manager.io/cluster-issuer: letsencrypt-{{ .Values.letsEncrypt.mode }}
+    {{- end }}
+spec:
+  {{- if .Values.letsEncrypt.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.host }}
+      secretName: tls-secret
+  {{- end }}
+  rules:
+    - http:
+        paths:
+        - path: {{.Values.urlPrefix}}(/|$)(.*)
+          backend:
+            serviceName: model-service
+            servicePort: 8080
+      {{- if .Values.host }}
+      host: {{ .Values.host }}
+      {{- end }}
+
+{{- if .Values.letsEncrypt.enabled }}
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: tls-secret
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: tls-secret
+  dnsNames:
+    - {{ .Values.host }}
+  acme:
+    config:
+      - http01:
+          ingressClass: nginx
+        domains:
+          - {{ .Values.host }}
+  issuerRef:
+    name: letsencrypt-{{.Values.letsEncrypt.mode}}
+    kind: ClusterIssuer
+{{- end }}

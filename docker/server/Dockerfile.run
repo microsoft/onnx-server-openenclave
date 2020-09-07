@@ -1,0 +1,44 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+FROM ubuntu:18.04
+
+RUN echo "APT::Acquire::Retries \"5\";" | tee /etc/apt/apt.conf.d/80-retries
+
+# gpg-agent needed for apt-add-repository (dependency missing?)
+# gcc needed by libsgx-* post-installation scripts (dependency missing?)
+RUN apt-get update && apt-get -y --no-install-recommends install \
+    ca-certificates apt-transport-https software-properties-common \
+    gpg-agent curl gcc
+
+# Work-around for https://github.com/intel/linux-sgx/issues/395
+RUN mkdir -p /etc/init
+
+RUN curl --retry 5 --retry-connrefused https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | apt-key add - && \
+    apt-add-repository https://download.01.org/intel-sgx/sgx_repo/ubuntu && \
+    apt-get update && apt-get -y --no-install-recommends install \
+    libsgx-enclave-common \
+    libsgx-enclave-common-dev \
+    libsgx-dcap-ql \
+    libsgx-dcap-ql-dev
+
+RUN curl --retry 5 --retry-connrefused https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    apt-add-repository https://packages.microsoft.com/ubuntu/$(lsb_release -r -s)/prod && \
+    apt-get update && \
+    apt-get -y install --no-install-recommends \
+    az-dcap-client
+
+ENV AZDCAP_CACHE=/tmp
+
+WORKDIR /root
+
+COPY confonnx_server_enclave.signed .
+COPY confonnx_server_host .
+COPY model.onnx .
+
+EXPOSE 8888
+
+ENTRYPOINT ["/root/confonnx_server_host", \
+    "--model-path", "/root/model.onnx", \
+    "--http-port", "8888", \
+    "--enclave-path", "/root/confonnx_server_enclave.signed"]

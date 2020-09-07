@@ -1,0 +1,5 @@
+See https://github.com/protocolbuffers/protobuf/pull/6039.
+RDTSC cannot be used inside the enclave and OE does not proxy it to the host.
+
+The patch can be removed once the PR is merged, a new protobuf version is released,
+and ONNX RT bumps to that version.
