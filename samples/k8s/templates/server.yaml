@@ -20,10 +20,16 @@ spec:
         - key: kubernetes.azure.com/sgx_epc_mem_in_MiB
           operator: Exists
           effect: NoSchedule
+      volumes:
+      - name: var-run-aesmd
+        hostPath:
+          path: /var/run/aesmd
       containers:
       - name: model-server
         image: {{ .Values.image }}
         env:
+        - name: SGX_AESM_ADDR
+          value: 1
         {{- if .Values.akv }}
         - name: CONFONNX_USE_AKV
           value: '1'

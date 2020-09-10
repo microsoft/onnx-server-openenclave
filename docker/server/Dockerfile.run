@@ -20,7 +20,8 @@ RUN curl --retry 5 --retry-connrefused https://download.01.org/intel-sgx/sgx_rep
     libsgx-enclave-common \
     libsgx-enclave-common-dev \
     libsgx-dcap-ql \
-    libsgx-dcap-ql-dev
+    libsgx-dcap-ql-dev \
+    libsgx-quote-ex
 
 RUN curl --retry 5 --retry-connrefused https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
     apt-add-repository https://packages.microsoft.com/ubuntu/$(lsb_release -r -s)/prod && \
