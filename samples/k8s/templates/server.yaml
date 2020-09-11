@@ -28,8 +28,8 @@ spec:
       - name: model-server
         image: {{ .Values.image }}
         env:
-        - name: SGX_AESM_ADDR
-          value: 1
+        #- name: SGX_AESM_ADDR
+        #  value: '1'
         {{- if .Values.akv }}
         - name: CONFONNX_USE_AKV
           value: '1'
@@ -51,6 +51,9 @@ spec:
         - name: CONFONNX_USE_MODEL_KEY_PROVISIONING
           value: {{ if .Values.useModelKeyProvisioning }}'1'{{ else }}'0'{{ end }}
         {{- end }}
+        volumeMounts:
+        - name: var-run-aesmd
+          mountPath: /var/run/aesmd
         ports:
         - containerPort: 8888
         resources:
