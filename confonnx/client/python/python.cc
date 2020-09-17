@@ -14,6 +14,7 @@ PYBIND11_MODULE(PY_MODULE_NAME, m) {  // NOLINT
       .def(py::init([](const std::string& enclave_signing_key_pem,
                        const std::string& enclave_hash,
                        const std::string& enclave_service_id,
+                       bool allow_debug,
                        bool verbose) {
         auto key_provider = confmsg::RandomKeyProvider::Create(KEY_SIZE);
         std::vector<uint8_t> enclave_hash_bytes = confmsg::Hex2Buffer(enclave_hash);
@@ -22,6 +23,7 @@ PYBIND11_MODULE(PY_MODULE_NAME, m) {  // NOLINT
                                enclave_signing_key_pem,
                                enclave_hash_bytes,
                                enclave_service_id_bytes,
+                               allow_debug,
                                verbose);
       }))
       .def("make_key_request", [](confmsg::Client& c) {

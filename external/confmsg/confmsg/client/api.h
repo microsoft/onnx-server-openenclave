@@ -66,6 +66,7 @@ class Client {
          const std::string& expected_enclave_signing_key_pem,
          const std::vector<uint8_t>& expected_enclave_hash,
          const std::vector<uint8_t>& expected_service_identifier,
+         bool allow_debug,
          bool verbose = false);
   Client(const Client&) = delete;
   Client& operator=(const Client&) = delete;
@@ -90,6 +91,7 @@ class Client {
   std::string expected_enclave_signing_key_pem;
   std::vector<uint8_t> expected_enclave_hash;
   std::vector<uint8_t> expected_service_identifier;
+  bool allow_debug;
 
   bool verbose;
 

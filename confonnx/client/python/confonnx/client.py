@@ -37,7 +37,8 @@ class Client(object):
                  auth: Optional[dict]=None,
                  enclave_signing_key: Optional[str]=None,
                  enclave_hash: Optional[str]=None,
-                 enclave_model_hash: Optional[str]=None) -> None:
+                 enclave_model_hash: Optional[str]=None,
+                 enclave_allow_debug=False) -> None:
         if url[-1] != '/':
             url += '/'
         self.url = url
@@ -56,6 +57,7 @@ class Client(object):
         self._client = confonnx_py.Client(enclave_signing_key,
                                           enclave_hash,
                                           enclave_service_id,
+                                          enclave_allow_debug,
                                           verbose)
         if auth:
             if 'key' in auth:

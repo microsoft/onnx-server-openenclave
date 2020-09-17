@@ -45,7 +45,8 @@ TEST(Integration, HostSimple) {
   confmsg::Client client(std::move(client_key_provider),
                          expected_enclave_signing_key_pem,
                          expected_enclave_hash,
-                         expected_service_identifier);
+                         expected_service_identifier,
+                         true);
 
   // Client
   uint8_t key_request_msg[1024];
@@ -90,11 +91,13 @@ TEST(Integration, HostTwoClients) {
   confmsg::Client client1(std::move(client_key_provider1),
                           expected_enclave_signing_key_pem,
                           expected_enclave_hash,
-                          expected_service_identifier);
+                          expected_service_identifier,
+                          true);
   confmsg::Client client2(std::move(client_key_provider2),
                           expected_enclave_signing_key_pem,
                           expected_enclave_hash,
-                          expected_service_identifier);
+                          expected_service_identifier,
+                          true);
 
   // Client 1
   uint8_t key_request_msg_1[1024];
@@ -174,7 +177,8 @@ TEST(Integration, EnclaveSimple) {
   confmsg::Client client(std::move(client_key_provider),
                          OE_DEBUG_SIGN_PUBLIC_KEY,
                          expected_enclave_hash,
-                         expected_service_id);
+                         expected_service_id,
+                         true);
 
   // Client
   uint8_t key_request_msg[1024];
@@ -232,7 +236,8 @@ TEST(Integration, EnclaveMultipleRequests) {
   confmsg::Client client(std::move(client_key_provider),
                          OE_DEBUG_SIGN_PUBLIC_KEY,
                          expected_enclave_hash,
-                         expected_service_id);
+                         expected_service_id,
+                         debug);
 
   // Client
   uint8_t key_request_msg[1024];

@@ -137,7 +137,8 @@ TEST_P(InferenceRequest, SqueezeNet) {
   confmsg::Client client(std::move(key_provider),
                          OE_DEBUG_SIGN_PUBLIC_KEY,
                          expected_enclave_hash,
-                         expected_service_id);
+                         expected_service_id,
+                         true);
 
   // Create key request message
   size_t extra = 1024;

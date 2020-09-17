@@ -32,7 +32,8 @@ Client::Client(std::unique_ptr<KeyProvider>&& kp,
                const std::string& expected_enclave_signing_key_pem,
                const std::vector<uint8_t>& expected_enclave_hash,
                const std::vector<uint8_t>& expected_service_identifier,
-               bool verbose) : key_provider(std::move(kp)), key_version(-1), expected_enclave_signing_key_pem(expected_enclave_signing_key_pem), expected_enclave_hash(expected_enclave_hash), expected_service_identifier(expected_service_identifier), verbose(verbose) {
+               bool allow_debug,
+               bool verbose) : key_provider(std::move(kp)), key_version(-1), expected_enclave_signing_key_pem(expected_enclave_signing_key_pem), expected_enclave_hash(expected_enclave_hash), expected_service_identifier(expected_service_identifier), allow_debug(allow_debug), verbose(verbose) {
   if (key_provider == nullptr) {
     throw std::invalid_argument("key_provider == null");
   }
@@ -326,12 +327,15 @@ void Client::VerifyQuote(CBuffer quote, CBuffer collateral, CBuffer service_publ
     throw AttestationError("security version check failed");
   }
 
+  if (!allow_debug && parsed_report.identity.attributes & OE_REPORT_ATTRIBUTES_DEBUG) {
+    throw AttestationError("debug flag check failed");
+  }
+
   // 3) Validate the report data
   // The quote's report_data is a hash of the actual report data.
   std::vector<uint8_t> data_hash;
   internal::SHA256({service_public_key, service_identifier}, data_hash);
 
-  // TODO check why parsed_report.report_data_size is 64 when it should be 32
   bool ok = memcmp(parsed_report.report_data, data_hash.data(), data_hash.size()) == 0;
 
   if (!ok) {
@@ -350,6 +354,7 @@ void Client::VerifyQuote(CBuffer quote, CBuffer collateral, CBuffer service_publ
   (void)(collateral);
   (void)(service_public_key);
   (void)(service_identifier);
+  (void)(allow_debug);
   throw AttestationError("quote verification requires OE host verify library");
 #endif
 }

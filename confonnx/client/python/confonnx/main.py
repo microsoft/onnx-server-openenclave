@@ -61,7 +61,8 @@ def _main_predict(args) -> None:
                auth=get_auth(args),
                enclave_signing_key=enclave_signing_key,
                enclave_hash=args.enclave_hash,
-               enclave_model_hash=enclave_model_hash)
+               enclave_model_hash=enclave_model_hash,
+               enclave_allow_debug=args.enclave_allow_debug)
 
     try:
         outputs = c.predict(inputs)
@@ -107,7 +108,8 @@ def _main_provision_model_key(args) -> None:
     c = Client(url=args.url,
                auth=get_auth(args),
                enclave_signing_key=enclave_signing_key,
-               enclave_hash=args.enclave_hash)
+               enclave_hash=args.enclave_hash,
+               enclave_allow_debug=args.enclave_allow_debug)
 
     c.provision_model_key(key)
 
@@ -133,6 +135,7 @@ def main(argv: List[str]) -> None:
     parser.add_argument('--enclave-hash', help='Expected enclave hash (hex encoded)')
     parser.add_argument('--enclave-model-hash', help='Expected enclave model hash (hex encoded)')
     parser.add_argument('--enclave-model-hash-file', help='Path to expected enclave model hash (hex encoded)')
+    parser.add_argument('--enclave-allow-debug', action='store_true', help='Allow debug-enabled enclaves')
     parser.add_argument('--pb-in', nargs='+', help='TensorProto input files')
     parser.add_argument('--pb-in-names', nargs='+', help='Graph input name for each TensorProto input file')
     parser.add_argument('--pb-out', help='Folder where TensorProto output files should be stored')

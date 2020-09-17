@@ -43,6 +43,7 @@ def test_cli_single_server_single_inference(tmp_path):
     with Server(model_path=model['model'], port=port):
         confonnx.main.main([
             '--url', f'http://localhost:{port}/',
+            '--enclave-allow-debug',
             '--pb-in', str(model['input']['data_0']),
             '--pb-in-names', 'data_0',
             '--pb-out', str(tmp_path)
@@ -58,6 +59,7 @@ def test_cli_single_server_parallel_inferences(tmp_path):
             out_dir = tmp_path / str(i)
             confonnx.main.main([
                 '--url', f'http://localhost:{port}/',
+                '--enclave-allow-debug',
                 '--pb-in', str(model['input']['data_0']),
                 '--pb-in-names', 'data_0',
                 '--pb-out', str(out_dir)
@@ -79,12 +81,14 @@ def test_cli_single_server_provision_model_key(tmp_path):
     with Server(model_path=encrypted_model_path, port=port, use_model_key_provisioning=True):
         confonnx.main.main([
             '--url', f'http://localhost:{port}/',
+            '--enclave-allow-debug',
             '--mode', 'provision-model-key',
             '--model-key', key
         ])
 
         confonnx.main.main([
             '--url', f'http://localhost:{port}/',
+            '--enclave-allow-debug',
             '--pb-in', str(model['input']['data_0']),
             '--pb-in-names', 'data_0',
             '--pb-out', str(tmp_path)
@@ -104,6 +108,7 @@ def test_cli_json_input_output(tmp_path):
     with Server(model_path=model['model'], port=port):
         confonnx.main.main([
             '--url', f'http://localhost:{port}/',
+            '--enclave-allow-debug',
             '--json-in', str(json_in_path),
             '--json-out', str(json_out_path)
         ])
@@ -116,7 +121,7 @@ def test_api_basic():
     model = MATMUL_1
     port = 8001
 
-    client = Client(f'http://localhost:{port}/')
+    client = Client(f'http://localhost:{port}/', enclave_allow_debug=True)
     
     with Server(model_path=model['model'], port=port):
         output = client.predict(model['input'])
@@ -127,7 +132,7 @@ def test_api_invalid_key():
     model = MATMUL_1
     port = 8001
 
-    client = Client(f'http://localhost:{port}/')
+    client = Client(f'http://localhost:{port}/', enclave_allow_debug=True)
 
     with Server(model_path=model['model'], port=port):
         client.predict(model['input'])
@@ -147,7 +152,7 @@ def test_api_local_key_rollover():
     model = MATMUL_1
     port = 8001
 
-    client = Client(f'http://localhost:{port}/')
+    client = Client(f'http://localhost:{port}/', enclave_allow_debug=True)
 
     with Server(model_path=model['model'], port=port,
                 key_rollover_interval=5, key_sync_interval=1):
@@ -168,7 +173,7 @@ def test_api_akv_key_rollover_single_server():
     port = 8001
     key_name = random_akv_key_name()
     try:
-        client = Client(f'http://localhost:{port}/')
+        client = Client(f'http://localhost:{port}/', enclave_allow_debug=True)
         with Server(model_path=model['model'], port=port,
                     key_rollover_interval=5, key_sync_interval=5,
                     use_akv=True,
@@ -209,7 +214,7 @@ def test_api_akv_multiple_servers():
                     akv_service_key_name=key_name,
                     akv_vault_url=os.environ['CONFONNX_TEST_VAULT_URL']))
 
-        client = Client(f'http://foo/')
+        client = Client(f'http://foo/', enclave_allow_debug=True)
 
         for port in ports:
             client.url = f'http://localhost:{port}/'
@@ -244,7 +249,7 @@ def test_api_akv_hsm_key_rollover_single_server():
     port = 8001
     key_name = random_akv_key_name()
     try:
-        client = Client(f'http://localhost:{port}/')
+        client = Client(f'http://localhost:{port}/', enclave_allow_debug=True)
 
         with Server(model_path=model['model'], port=port,
                     key_rollover_interval=5, key_sync_interval=5,

@@ -232,6 +232,8 @@ python3 -m confonnx.main --url http://localhost:8888/ --enclave-hash "<mrenclave
 ```
 The inference result is stored in `output.json`.
 
+Note: Add `--enclave-allow-debug` if `Debug` is set to `1` in `enclave.conf`.
+
 Stop the server again:
 ```sh
 docker stop model-server-test
@@ -349,6 +351,8 @@ Now, send an inference request securily with the client:
 ```sh
 python3 -m confonnx.main --url http://1.2.3.4/mymodel --enclave-hash "<mrenclave>" --enclave-model-hash-file model.hash --json-in input.json --json-out output.json --auth-user api --auth-pass password123
 ```
+
+Note: Add `--enclave-allow-debug` if `Debug` is set to `1` in `enclave.conf`.
 
 ## Next Steps
 
