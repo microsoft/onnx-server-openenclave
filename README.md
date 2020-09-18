@@ -12,7 +12,7 @@ To make this tutorial easier to follow, we first describe how to locally build a
 
 ### Setting up a local deployment on an [ACC VM](https://azure.microsoft.com/en-us/solutions/confidential-compute)
 The reason for running this deployment flow on an ACC VM is that during the deployment, you will be able to test the server locally. This requires Intel SGX support on the server, which is enabled on DC-series VMs from Azure Confidential Computing.
-In case you don't need to test the server locally, an ACC VM is not required (see the AKS deployment flow instead)
+In case you don't need to test the server locally, an ACC VM is not required - skip to the [AKS deployment tutorial](AKS-Deployment.md) after you build the server image.
 
 *Note: The azure subscriptions have default of 8 cores, and the development VM would take some of them – it is recommended you use the DC2sv2 VM for the build machine with 2 cores and the rest can be used by the ACC AKS*
 
