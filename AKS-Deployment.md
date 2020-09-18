@@ -219,7 +219,7 @@ See the "Next Steps" section for further details.
 
 Now, send an inference request securily with the client:
 ```sh
-python3 -m confonnx.main --url http://1.2.3.4/mymodel --enclave-hash "<mrenclave>" --enclave-model-hash-file model.hash --json-in input.json --json-out output.json --auth-user api --auth-pass password123
+python3 -m confonnx.main --url http://1.2.3.4/mymodel --enclave-hash "<mrenclave>" --enclave-model-hash "<modelhash>" --json-in input.json --json-out output.json --auth-user api --auth-pass password123
 ```
 
 Note: Add `--enclave-allow-debug` if `Debug` is set to `1` in `enclave.conf`.

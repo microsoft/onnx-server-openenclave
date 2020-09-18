@@ -99,7 +99,7 @@ We are now ready to bundle the model and the server into a Docker image ready fo
 MODEL_PATH=model.onnx IMAGE_NAME=model-server docker/server/build_image.sh 
 ```
 
-### The client
+### Building the client
 
 To use your server, your clients would need to use a proprietary protocol
 which will make sure the target server is secure before sending it the
