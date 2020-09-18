@@ -1,3 +1,4 @@
+
 # AKS Deployment
 
 This guide assumes that you followed the build instructions in the "Getting started" section of the main [README](README.md).
@@ -16,18 +17,21 @@ sudo snap install helm --classic
 
 ### Install htpasswd 
 
-The `htpasswd` tool is needed for creating authentication keys:
+The `htpasswd` tool is needed for to create API keys to authenticate clients:
 ```sh
 sudo apt install apache2-utils
 ```
 
 ### Install Azure CLI and Login
 
-Follow https://docs.microsoft.com/en-us/cli/azure/install-azure-cli, then run:
+Follow https://docs.microsoft.com/en-us/cli/azure/install-azure-cli, or run:
 
 ```sh
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+```
+then login with:
+```sh
 az login
-
 # Set default subscription
 az account set --subscription "<subscription id>"
 ```
@@ -54,7 +58,7 @@ az group create --name $MYACR-rg --location eastus
 az acr create --name $MYACR --resource-group $MYACR-rg --sku basic
 ```
 
-### Enable Preview AKS
+### Enable the ACC Preview feature of AKS
 
 Enable the `Gen2VMPreview` AKS preview feature in your subscription in order to use ACC VMs:
 ```sh
@@ -67,13 +71,12 @@ az provider register --namespace "Microsoft.ContainerService"
 az provider show -n Microsoft.ContainerService | grep registrationState
 ```
 
-### Set-up AKS Cluster
+### Set-up the AKS Cluster
 
 Create the AKS cluster:
 ```sh
 # from "Set-up ACR" step
 MYACR=myregistry
-
 MYAKS=aks-acc-test
 
 az group create --name $MYAKS-rg --location eastus
@@ -119,9 +122,9 @@ You can now push your Docker image to ACR:
 # See the "Set-up ACR" step.
 MYACR=myregistry
 
-az acr login --name $MYACR
-docker tag model-server $MYACR.azurecr.io/model-server
-docker push $MYACR.azurecr.io/model-server
+sudo az acr login --name $MYACR
+sudo docker tag model-server $MYACR.azurecr.io/model-server
+sudo docker push $MYACR.azurecr.io/model-server
 ```
 
 ### Install an Ingress Controller
@@ -228,7 +231,7 @@ Note: Add `--enclave-allow-debug` if `Debug` is set to `1` in `enclave.conf`.
 
 ### Use TLS with Let's Encrypt
 
-The proprietary protocol of the inference server ensures that request and response data are encrypted.
+The proprietary protocol of the inference server ensures that request and response data are encrypted even if the request is served over plaintext HTTP.
 However, you might still want to expose your server under a regular domain name with a standard TLS certificate for better integration in existing ecosystems.
 
 Follow the [TLS with Let's Encrypt guide](AKS-TLS-LetsEncrypt.md) to get started.
