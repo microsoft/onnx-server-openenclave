@@ -42,11 +42,8 @@ Once you have the server image you can run it on your VM via docker, and via cli
 Once you have built and tested the confidential inference server container on your VM, you are ready to [deploy on an AKS cluster](AKS-Deployment.md).
 **Remember, without a key management solution you are can only deploy on a single node**
 
-# Building and testing on an ACC VM
+## Building and testing on an ACC VM
 This section describes the steps needed to build and run a confidential inference server on an Azure Confidential Compute VM.
-
-## Deployment Environment
-You will need to set up a deployment environment in order to build, bundle, test and deploy the server.
 *Note: The following commands were tested on an ACC VM running Ubuntu 18.04.*
 
 ### Provision an ACC VM
