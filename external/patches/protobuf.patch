@@ -1,0 +1,10 @@
+diff --git a/src/google/protobuf/map.h b/src/google/protobuf/map.h
+index 6463ac2e..e87215b4 100644
+--- a/src/google/protobuf/map.h
++++ b/src/google/protobuf/map.h
+@@ -936,5 +935,0 @@ class Map {
+-#if defined(__x86_64__) && defined(__GNUC__)
+-      uint32 hi, lo;
+-      asm("rdtsc" : "=a" (lo), "=d" (hi));
+-      s += ((static_cast<uint64>(hi) << 32) | lo);
+-#endif

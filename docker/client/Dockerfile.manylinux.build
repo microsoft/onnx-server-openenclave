@@ -1,0 +1,31 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+FROM quay.io/pypa/manylinux2010_x86_64:latest
+
+RUN yum install -y \
+    ninja-build openssl-devel
+
+WORKDIR /tmp
+
+# CMake
+RUN curl --retry 5 https://cmake.org/files/v3.15/cmake-3.15.7-Linux-x86_64.sh -o cmake.sh && \
+    chmod +x cmake.sh && \
+    ./cmake.sh --prefix=/usr --exclude-subdir --skip-license && \
+    rm cmake.sh
+
+# TODO enable once https://github.com/openenclave/openenclave/pull/3123 works
+#ARG OE_VERSION=host_verify_minimal
+#
+#RUN git clone -b ${OE_VERSION} https://github.com/ryanhsu19/openenclave.git --recursive && \
+#    cd openenclave && \
+#    mkdir build && cd build && \
+#    cmake -GNinja \
+#      -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+#      -DCMAKE_INSTALL_PREFIX=/opt/openenclave \
+#      -DCOMPONENT=OEHOSTVERIFY \
+#      -DHAS_QUOTE_PROVIDER=OFF \
+#      -DBUILD_TESTS=OFF \
+#      -DENABLE_REFMAN=OFF .. && \
+#    cmake --build . --target install && \
+#    cd ../.. && rm -rf openenclave*/

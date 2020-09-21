@@ -1,0 +1,28 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+replicas: 1
+
+# Change this to reflect your own registry and image name.
+image: cairegistry.azurecr.io/model-server:latest
+
+sgx:
+  # Change this to influence how pods are scheduled to nodes.
+  # You can find the maximum value for a given node pool with:
+  # kubectl get nodes <nodepool> -o yaml | grep sgx_epc
+  epcMemInMiB: 10
+
+# Change this to the desired URL for your model.
+urlPrefix: '/mymodel'
+
+# If you use a DNS name, uncomment the following 'host' line.
+# Change this to the DNS name assigned to your nginx ingress public IP.
+#host: <name>.<yourlocation>.cloudapp.azure.com
+
+letsEncrypt:
+  # Change this to true if you are using Let's Encrypt for TLS certificates.
+  enabled: false
+
+  # Change this to 'staging' or 'production' depending on which Let's Encrypt
+  # endpoint you like to use.
+  mode: staging

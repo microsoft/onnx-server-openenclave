@@ -1,0 +1,89 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+FROM ubuntu:18.04
+
+# Software that needs to be pinned for reproducibility as it affects the resulting enclave image.
+ARG LLVM_VERSION=1:7.1.0~svn353565-1~exp1~20190406090509.61
+ARG OE_VERSION=v0.10.0
+
+ARG BUILD_TYPE=Release
+
+RUN echo "APT::Acquire::Retries \"5\";" | tee /etc/apt/apt.conf.d/80-retries
+
+# gpg-agent needed for apt-add-repository (dependency missing?)
+# gawk needed by oe_c_compiler_inc_dir.sh in ONNX RT
+# zlib needed by protoc in ONNX RT
+# python3 needed for confonnx tests
+RUN apt-get update && apt-get -y --no-install-recommends install \
+    ca-certificates apt-transport-https software-properties-common \
+    curl gawk gpg-agent \
+    build-essential automake autoconf libtool \
+    zlib1g-dev libssl-dev libcurl4-openssl-dev git gdb \
+    python3-pip python3-dev
+
+WORKDIR /tmp
+
+# CMake
+RUN curl --retry 5 --retry-connrefused https://cmake.org/files/v3.15/cmake-3.15.7-Linux-x86_64.sh -o cmake.sh && \
+    chmod +x cmake.sh && \
+    ./cmake.sh --prefix=/usr --exclude-subdir --skip-license && \
+    rm cmake.sh
+
+# Ninja
+RUN curl --retry 5 --retry-connrefused -L https://github.com/ninja-build/ninja/archive/v1.10.0.tar.gz | tar xz && \
+    cd ninja-* && \
+    mkdir build && cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    make -j$(nproc) && \
+    cp ninja /usr/bin && \
+    cd ../.. && rm -rf ninja*/
+
+# Work-around for https://github.com/intel/linux-sgx/issues/395
+RUN mkdir -p /etc/init
+
+RUN curl --retry 5 --retry-connrefused https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | apt-key add - && \
+    apt-add-repository https://download.01.org/intel-sgx/sgx_repo/ubuntu && \
+    apt-get update && apt-get -y --no-install-recommends install \
+    libsgx-enclave-common \
+    libsgx-enclave-common-dev \
+    libsgx-dcap-ql \
+    libsgx-dcap-ql-dev
+
+RUN curl --retry 5 --retry-connrefused https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
+    apt-add-repository "deb https://apt.llvm.org/bionic/ llvm-toolchain-bionic-7 main" && \
+    apt-get update && apt-get -y --no-install-recommends install \
+    clang-7=${LLVM_VERSION} \
+    lld-7=${LLVM_VERSION}
+
+# All software below this point will be compiled with Clang.
+ENV CC=clang-7
+ENV CXX=clang++-7
+ENV LD=lld-7
+
+# Open Enclave (used in host and enclave)
+# TODO remove sed patch after switching to COMPILE_SYSTEM_EDL=OFF. See also TODO.md.
+RUN git clone -b ${OE_VERSION} --recursive --depth 1 https://github.com/openenclave/openenclave && \
+    cd openenclave && \
+    sed -i 's/-Werror//g' cmake/compiler_settings.cmake && \
+    mkdir build && cd build && \
+    cmake -GNinja \
+      -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+      -DCMAKE_INSTALL_PREFIX=/opt/openenclave \
+      -DCOMPILE_SYSTEM_EDL=ON \
+      -DBUILD_TESTS=OFF \
+      -DENABLE_REFMAN=OFF .. && \
+    cmake --build . --target install && \
+    cd ../.. && rm -rf openenclave*/
+
+# Azure DCAP client (here only used for unit testing)
+RUN curl --retry 5 --retry-connrefused https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    apt-add-repository https://packages.microsoft.com/ubuntu/$(lsb_release -r -s)/prod && \
+    apt-get update && \
+    apt-get -y install --no-install-recommends \
+    az-dcap-client
+
+# Python test dependencies
+RUN pip3 install six requests numpy onnx protobuf pytest pycryptodome
+
+ENV AZDCAP_CACHE=/tmp

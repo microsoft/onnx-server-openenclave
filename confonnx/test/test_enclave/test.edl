@@ -1,0 +1,93 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+enclave {
+
+    /*
+     * OE requires applications to import EDL used by the SDK to support some
+     * core functionality.
+     *
+     * - attestation.edl & sgx_attestation.edl are needed for OE attestation
+     *   APIs
+     * - logging.edl is needed to support OE diagnostic console logging
+     * - cpu.edl is needed for CPUID querying
+     * - debug.edl should only be needed for debug builds but it is always linked
+     *   into oecore. Additionally, EDL does not currently support conditional
+     *   imports
+     */
+    //from "openenclave/edl/attestation.edl" import *;
+    //from "openenclave/edl/logging.edl" import *;
+    //from "openenclave/edl/sgx/cpu.edl" import *;
+    //from "openenclave/edl/sgx/debug.edl" import *;
+    //from "openenclave/edl/sgx/attestation.edl" import *;
+
+    trusted {
+        public void TestEnclaveCallCurl(
+            [string, in] const char* url,
+            bool verbose);
+
+        public void TestEnclaveKeyVault(
+            [string, in] const char* app_id,
+            [string, in] const char* app_pwd,
+            [string, in] const char* vault_url,
+            [string, in] const char* fixed_key_name,
+            [string, in] const char* fixed_key_value,
+            bool verbose);
+
+        public void TestEnclaveKeyVaultHsm(
+            [string, in] const char* app_id,
+            [string, in] const char* app_pwd,
+            [string, in] const char* vault_url,
+            [string, in] const char* attestation_url,
+            [string, in] const char* key_name,
+            bool verbose,
+            bool keep_key);
+
+        public void TestEnclaveCreateKeyVaultHsmKey(
+            [string, in] const char* app_id,
+            [string, in] const char* app_pwd,
+            [string, in] const char* vault_url,
+            [string, in] const char* key_name,
+            [string, in] const char* attestation_url,
+            bool verbose);
+        
+        public void TestEnclaveExportKeyVaultHsmKey(
+            [string, in] const char* app_id,
+            [string, in] const char* app_pwd,
+            [string, in] const char* vault_url,
+            [string, in] const char* key_name,
+            [string, in] const char* attestation_url,
+            bool verbose,
+            [out, size=max_output_size] uint8_t* output,
+            [out] size_t* output_size,
+            size_t max_output_size,
+            [out] uint32_t* version);
+
+        public void TestEnclaveDeleteKeyVaultHsmKey(
+            [string, in] const char* app_id,
+            [string, in] const char* app_pwd,
+            [string, in] const char* vault_url,
+            [string, in] const char* key_name,
+            [string, in] const char* attestation_url,
+            bool verbose);
+        
+        public void TestEnclaveThreadFun (
+            uint64_t enc_key);
+    };
+
+    untrusted {
+        void test_host_exit(
+            int arg);
+
+        void test_host_create_thread(
+            uint64_t enc_key,
+            [user_check] oe_enclave_t* enc);
+
+        int test_host_join_thread(
+            uint64_t enc_key);
+
+        int test_host_detach_thread(
+            uint64_t enc_key);
+    };
+
+};

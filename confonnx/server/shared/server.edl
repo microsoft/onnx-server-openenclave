@@ -1,0 +1,101 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+enclave {
+
+    /*
+     * OE requires applications to import EDL used by the SDK to support some
+     * core functionality.
+     *
+     * - attestation.edl & sgx_attestation.edl are needed for OE attestation
+     *   APIs
+     * - logging.edl is needed to support OE diagnostic console logging
+     * - cpu.edl is needed for CPUID querying
+     * - debug.edl should only be needed for debug builds but it is always linked
+     *   into oecore. Additionally, EDL does not currently support conditional
+     *   imports
+     */
+    //from "openenclave/edl/attestation.edl" import *;
+    //from "openenclave/edl/logging.edl" import *;
+    //from "openenclave/edl/sgx/cpu.edl" import *;
+    //from "openenclave/edl/sgx/debug.edl" import *;
+    //from "openenclave/edl/sgx/attestation.edl" import *;
+
+    trusted {
+        /**
+         * \param model_buf ONNX model buffer.
+         * \param model_len Length of model_buf in bytes.
+         * \param key_rollover_interval_seconds Key rollover interval in seconds.
+         * \return Status code, one of
+         *    SUCCESS
+         *    CRYPTO_ERROR
+         *    KEY_REFRESH_ERROR
+         *    MODEL_LOADING_ERROR
+         *    SESSION_ALREADY_INITIALIZED_ERROR
+         *    SESSION_INITIALIZATION_ERROR
+         *    UNKNOWN_ERROR
+         */
+        public int EnclaveInitialize(
+            [in, count=model_len] const uint8_t* model_buf, size_t model_len,
+            uint32_t key_rollover_interval_seconds,
+            bool use_model_key_provisioning,
+            bool use_akv,
+            [in, string] const char* akv_app_id,
+            [in, string] const char* akv_app_pwd,
+            [in, string] const char* akv_vault_url,
+            [in, string] const char* akv_service_key_name,
+            [in, string] const char* akv_model_key_name,
+            [in, string] const char* akv_attestation_url);
+
+        /**
+         * \param input_buf Input payload buffer.
+         * \param input_size Length of input_buf in bytes.
+         * \param output_buf Output payload buffer of size output_max_size, allocated by caller.
+         * \param output_max_size Length of output_buf in bytes.
+         * \param output_size Number of bytes in output_buf that were actually used.
+         * \return Status code, one of
+         *    SUCCESS
+         *    CRYPTO_ERROR
+         *    ATTESTATION_ERROR
+         *    KEY_REFRESH_ERROR
+         *    PAYLOAD_PARSE_ERROR
+         *    INFERENCE_ERROR
+         *    OUTPUT_BUFFER_TOO_SMALL_ERROR
+         *    OUTPUT_SERIALIZATION_ERROR
+         *    UNKNOWN_ERROR
+         */
+        public int EnclaveHandleRequest(
+            [in, string] const char* request_id,
+            uint8_t request_type,
+            [in, count=input_size] const uint8_t* input_buf, size_t input_size,
+            [out, count=output_max_size] uint8_t* output_buf, [out] size_t* output_size, size_t output_max_size);
+
+        /*
+         * \return Status code, one of
+         *    SUCCESS
+         *    KEY_REFRESH_ERROR
+         *    UNKNOWN_ERROR
+         */
+        public int EnclaveMaybeRefreshKey();
+
+        public void EnclaveThreadFun (
+            uint64_t enc_key);
+
+        public int EnclaveDestroy();
+    };
+
+    untrusted {
+        void host_exit(
+            int arg);
+
+        void host_create_thread(
+            uint64_t enc_key,
+            [user_check] oe_enclave_t* enc);
+
+        int host_join_thread(
+            uint64_t enc_key);
+
+        int host_detach_thread(
+            uint64_t enc_key);
+    };
+};
