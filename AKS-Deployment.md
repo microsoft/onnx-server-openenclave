@@ -95,7 +95,7 @@ MYAKS=aks-acc-test
 az group create --name $MYAKS-rg --location eastus
 
 # Create the cluster with a one-node non-ACC system node pool.
-az aks create --resource-group $MYAKS-rg --name $MYAKS --attach-acr $MYACR --vm-set-type VirtualMachineScaleSets --node-count 1 --node-vm-size Standard_DS2_v2 --aks-custom-headers usegen2vm=true
+az aks create --resource-group $MYAKS-rg --name $MYAKS --attach-acr $MYACR --vm-set-type VirtualMachineScaleSets --node-count 1 --enable-addon confcom --node-vm-size Standard_DS2_v2 --aks-custom-headers usegen2vm=true
 
 # Add the ACC user node pool.
 az aks nodepool add --resource-group $MYAKS-rg --cluster-name $MYAKS --name accpool --mode User --node-count 1 --node-vm-size Standard_DC4s_v2 --aks-custom-headers usegen2vm=true
@@ -105,12 +105,13 @@ az aks nodepool show -g $MYAKS-rg --cluster-name $MYAKS -n nodepool1
 az aks nodepool show -g $MYAKS-rg --cluster-name $MYAKS -n accpool
 ```
 
-Check that the SGX device plugin was deployed:
+Check that the SGX device plugin and SGX quote helper were deployed:
 ```sh
 az aks get-credentials --name $MYAKS --resource-group $MYAKS-rg
 kubectl get pods -n kube-system -l app=sgx-device-plugin
+kubectl get pods -n kube-system -l app=sgx-quote-helper
 ```
-Verify you see sgx-device-plugin-xxxxx
+Verify you see sgx-device-plugin-xxxxx and sgx-quote-helper-xxxxx
 
 If you decide to delete the AKS cluster run:
 ```sh
