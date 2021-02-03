@@ -84,6 +84,7 @@ RUN curl --retry 5 --retry-connrefused https://packages.microsoft.com/keys/micro
     az-dcap-client
 
 # Python test dependencies
+RUN python3 -m pip install --upgrade pip
 RUN pip3 install six requests numpy onnx protobuf pytest pycryptodome
 
 ENV AZDCAP_CACHE=/tmp
