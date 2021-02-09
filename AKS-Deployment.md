@@ -95,7 +95,7 @@ MYAKS=aks-acc-test
 az group create --name $MYAKS-rg --location eastus
 
 # Create the cluster with a one-node non-ACC system node pool.
-az aks create --resource-group $MYAKS-rg --name $MYAKS --attach-acr $MYACR --vm-set-type VirtualMachineScaleSets --node-count 1 --enable-addon confcom --node-vm-size Standard_DS2_v2 --aks-custom-headers usegen2vm=true
+az aks create --resource-group $MYAKS-rg --name $MYAKS --attach-acr $MYACR --vm-set-type VirtualMachineScaleSets --node-count 1 --enable-addon confcom --enable-sgxquotehelper --node-vm-size Standard_DS2_v2 --aks-custom-headers usegen2vm=true
 
 # Add the ACC user node pool.
 az aks nodepool add --resource-group $MYAKS-rg --cluster-name $MYAKS --name accpool --mode User --node-count 1 --node-vm-size Standard_DC4s_v2 --aks-custom-headers usegen2vm=true
